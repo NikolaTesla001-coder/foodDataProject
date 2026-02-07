@@ -19,7 +19,9 @@ export default function HistoryPage() {
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [mounted, setMounted] = useState(false);
-
+   useEffect(() => {
+    useScanStore.getState().loadFromStorage();
+  }, []);
   useEffect(() => {
     setHistory(storeHistory);
     setMounted(true);
