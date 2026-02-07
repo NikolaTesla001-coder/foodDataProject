@@ -50,6 +50,7 @@ addToHistory({
   name: realName,
   count: count || 1,
   score: finalScore,
+  time: new Date().toISOString(),
 });
 
 setNutriSummary([
@@ -82,8 +83,14 @@ const rounded =
 
       // ---- COMPONENTS ----
       const comps = p?.nutriscore_data?.components || {};
-
-      const compRows = [];
+      type ComponentRow = {
+  component: string;
+  value: number;
+  unit: string;
+  points: number;
+  type: "Positive" | "Negative";
+};
+      const compRows: ComponentRow[] = [];
 
 // NEGATIVE COMPONENTS
 (comps.negative || []).forEach((c: any) => {
