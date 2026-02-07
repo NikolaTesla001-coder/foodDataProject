@@ -8,6 +8,7 @@ import { useScanStore } from "../../store/useScanStore";
 export default function CapturePage() {
     const { addToHistory } = useScanStore();
   const { setCount, setProductName, count } = useScanStore();
+  const [facing, setFacing] = useState<"user" | "environment">("environment");
 
   const [mode, setMode] = useState<"upload" | "camera">("upload");
   const [image, setImage] = useState<File | null>(null);
@@ -153,25 +154,52 @@ return (
         )}
 
         {/* Camera */}
-        {mode === "camera" && (
-          <div className="space-y-2">
-            <Webcam
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              className="w-full rounded-xl"
-            />
+{mode === "camera" && (
+  <>
+    <Webcam
+      ref={webcamRef}
+      screenshotFormat="image/jpeg"
+      className="w-full rounded-xl"
+      videoConstraints={{
+        facingMode: facing
+      }}
+    />
 
-            <button
-              onClick={captureFromCamera}
-              className="
-                w-full p-3 rounded-xl border border-black/10
-                hover:bg-black/5 transition text-sm
-              "
-            >
-              Capture Photo
-            </button>
-          </div>
-        )}
+   <div className="grid grid-cols-2 gap-3 mt-3">
+
+  <button
+    onClick={captureFromCamera}
+    className="
+      w-full py-2.5 rounded-xl
+      bg-black text-white
+      hover:bg-black/90 active:scale-[0.98]
+      transition font-medium
+      border border-black
+    "
+  >
+    Capture
+  </button>
+
+  <button
+    onClick={() =>
+      setFacing(facing === "environment" ? "user" : "environment")
+    }
+    className="
+      w-full py-2.5 rounded-xl
+      bg-white text-black
+      border border-black/20
+      hover:bg-gray-100 active:scale-[0.98]
+      transition font-medium
+    "
+  >
+    Switch Camera
+  </button>
+
+</div>
+
+  </>
+)}
+
 
         {/* Preview */}
         {preview && (
