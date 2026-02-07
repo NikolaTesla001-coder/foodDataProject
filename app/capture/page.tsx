@@ -77,70 +77,149 @@ export default function CapturePage() {
 
  
 
-  return (
-    <div className="max-w-2xl mx-auto p-6">
+return (
+  <div className="min-h-screen bg-[#f5f5f7] text-black">
+    
+    {/* Content Container */}
+    <div className="max-w-xl mx-auto px-4 py-6 space-y-4">
 
-      <h1 className="text-2xl font-semibold mb-4">
-        Object Counter
+      {/* Title */}
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Scan Items
       </h1>
 
-      <input
-        className="w-full border p-2 mb-4 bg-black"
-        placeholder="Product name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-      />
+      {/* Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-4 space-y-4">
 
-      <div className="flex gap-4 mb-4">
-        <button onClick={() => setMode("upload")}>
-          Upload
-        </button>
+        {/* Product Name */}
+        <div>
+          <label className="text-sm text-black/60 mb-1 block">
+            Product name
+          </label>
 
-        <button onClick={() => setMode("camera")}>
-          Camera
-        </button>
-      </div>
-
-      {mode === "upload" && (
-        <input type="file" onChange={handleUpload} />
-      )}
-
-      {mode === "camera" && (
-        <>
-          <Webcam
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            className="w-full"
+          <input
+            className="
+              w-full rounded-xl border border-black/10
+              px-3 py-2 outline-none
+              focus:border-black/30 transition
+            "
+            placeholder="e.g. Apple Juice Bottle"
+            value={name}
+            onChange={e => setName(e.target.value)}
           />
+        </div>
 
-          <button onClick={captureFromCamera}>
-            Capture
+        {/* Mode Switch */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setMode("upload")}
+            className={`
+              p-3 rounded-xl border transition text-sm
+              ${mode === "upload"
+                ? "bg-black text-white"
+                : "border-black/10 hover:bg-black/5"
+              }
+            `}
+          >
+            Upload Photo
           </button>
-        </>
-      )}
 
-      {preview && (
-        <img src={preview} className="mt-4 w-64" />
-      )}
+          <button
+            onClick={() => setMode("camera")}
+            className={`
+              p-3 rounded-xl border transition text-sm
+              ${mode === "camera"
+                ? "bg-black text-white"
+                : "border-black/10 hover:bg-black/5"
+              }
+            `}
+          >
+            Use Camera
+          </button>
+        </div>
 
-      <button
-        onClick={handleCount}
-        className="mt-4 bg-blue-600 px-4 py-2"
-      >
-        {loading ? "Calculating..." : "Calculate"}
-      </button>
+        {/* Upload */}
+        {mode === "upload" && (
+          <input
+            type="file"
+            onChange={handleUpload}
+            className="
+              w-full text-sm
+              file:mr-3 file:px-3 file:py-2
+              file:rounded-xl file:border-0
+              file:bg-black/5 file:text-black
+            "
+          />
+        )}
 
-      <p className="mt-2">
-        Current count: {count}
-      </p>
+        {/* Camera */}
+        {mode === "camera" && (
+          <div className="space-y-2">
+            <Webcam
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              className="w-full rounded-xl"
+            />
 
-      <button
-  className="mt-4 bg-green-600 text-white px-4 py-2"
-  onClick={() => exportCapture(name, count)}
->
-  Export to Excel
-</button>
+            <button
+              onClick={captureFromCamera}
+              className="
+                w-full p-3 rounded-xl border border-black/10
+                hover:bg-black/5 transition text-sm
+              "
+            >
+              Capture Photo
+            </button>
+          </div>
+        )}
 
+        {/* Preview */}
+        {preview && (
+          <img
+            src={preview}
+            className="w-full rounded-xl border border-black/10"
+          />
+        )}
+
+        {/* Primary Action */}
+        <button
+          onClick={handleCount}
+          className="
+            w-full p-3 rounded-xl
+            bg-black text-white
+            hover:bg-black/90 transition
+            font-medium
+          "
+        >
+          {loading ? "Calculating…" : "Calculate Items"}
+        </button>
+
+        {/* Result */}
+        <div className="text-center pt-2">
+          <div className="text-sm text-black/60">
+            Detected count
+          </div>
+
+          <div className="text-4xl font-semibold tracking-tight">
+            {count}
+          </div>
+        </div>
+
+        {/* Export */}
+        <button
+          className="
+            w-full p-3 rounded-xl
+            border border-black/10
+            hover:bg-black/5 transition text-sm
+          "
+          onClick={() => exportCapture(name, count)}
+        >
+          Export to Excel
+        </button>
+
+      </div>
     </div>
-  );
+  </div>
+);
+
 }

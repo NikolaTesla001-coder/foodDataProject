@@ -16,6 +16,7 @@ export default function NutritionPage() {
   const [productName, setProductName] = useState("");
 
   const [score, setScore] = useState<number | null>(null);
+  const [nutriSummary, setNutriSummary] = useState<any[]>([]);
 
   const [nutritionTable, setNutritionTable] = useState<any[]>([]);
   const [componentTable, setComponentTable] = useState<any[]>([]);
@@ -31,24 +32,31 @@ export default function NutritionPage() {
       const p = res.data.product;
 
       // ✔ NAME FROM API ONLY
-      setProductName(
-        p.product_name || 
-        p.brands || 
-        "Unknown Product"
-      );
+const realName =
+  p.product_name || 
+  p.brands || 
+  "Unknown Product";
 
-      // SCORE
-      const pos = p?.nutriscore_data?.positive_points || 0;
-      const neg = p?.nutriscore_data?.negative_points || 0;
-      const finalScore = pos - neg;
+setProductName(realName);
 
+const pos = p?.nutriscore_data?.positive_points || 0;
+const neg = p?.nutriscore_data?.negative_points || 0;
+const finalScore = pos - neg;
 
-      setScore(pos - neg);
-      addToHistory({
-  name: productName || "Unknown",
+setScore(finalScore);
+
+// USE THE FRESH VALUE DIRECTLY
+addToHistory({
+  name: realName,
   count: count || 1,
   score: finalScore,
 });
+
+setNutriSummary([
+  { metric: "Positive Points", value: pos },
+  { metric: "Negative Points", value: neg },
+  { metric: "Final Score", value: finalScore },
+]);
 
 
       // ---- NUTRITION TABLE ----
@@ -57,10 +65,14 @@ export default function NutritionPage() {
       Object.keys(p.nutriments || {}).forEach(key => {
         if (key.endsWith("_100g")) {
           const base = key.replace("_100g", "");
-
+          const raw = p.nutriments[key];
+const rounded =
+  typeof raw === "number"
+    ? Number(raw.toFixed(2))
+    : raw;
           rows.push({
             nutrient: base,
-            value: p.nutriments[key],
+            value: rounded,
             unit: p.nutriments[base + "_unit"] || "",
           });
         }
@@ -71,12 +83,32 @@ export default function NutritionPage() {
       // ---- COMPONENTS ----
       const comps = p?.nutriscore_data?.components || {};
 
-      const compRows = [
-        ...(comps.negative || []),
-        ...(comps.positive || []),
-      ];
+      const compRows = [];
 
-      setComponentTable(compRows);
+// NEGATIVE COMPONENTS
+(comps.negative || []).forEach((c: any) => {
+  compRows.push({
+    component: c.id,
+    value: Number(c.value?.toFixed?.(2) ?? c.value),
+    unit: c.unit || "",
+    points: c.points,
+    type: "Negative",
+  });
+});
+
+// POSITIVE COMPONENTS
+(comps.positive || []).forEach((c: any) => {
+  compRows.push({
+    component: c.id,
+    value: Number(c.value?.toFixed?.(2) ?? c.value),
+    unit: c.unit || "",
+    points: c.points,
+    type: "Positive",
+  });
+});
+
+setComponentTable(compRows);
+
 
     } catch (err) {
       alert("Invalid barcode");
@@ -112,113 +144,198 @@ saveToHistory({
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+  <div className="min-h-screen bg-[#f2f2f2] text-black">
 
-      <h1 className="text-2xl mb-4">Nutrition Analyzer</h1>
+    <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
 
-      <input
-        className="border p-2 w-full"
-        placeholder="Enter Barcode"
-        value={barcode}
-        onChange={e => setBarcode(e.target.value)}
-      />
+      {/* HEADER */}
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Nutrition Analyzer
+        </h1>
+        <p className="text-black/60 mt-1">
+          Powered by OpenFoodFacts
+        </p>
+      </div>
 
-      <button
-        className="bg-blue-600 text-white px-4 py-2 mt-2"
-        onClick={fetchInfo}
-      >
-        Fetch
-      </button>
-      {/* COUNT FROM TAB 1 */}
-<div className="mt-4 p-3 border bg-gray-900 text-white">
-  <span className="text-gray-400">Detected Count:</span>{" "}
-  <span className="font-bold text-lg">{count}</span>
-</div>
+      {/* ===== INPUT CARD ===== */}
+      <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4 border">
 
-    {productName && (
-  <div className="mt-4 p-3 border bg-gray-900 text-white">
-    <span className="text-gray-400">Product:</span>{" "}
-    <span className="font-semibold">{productName}</span>
-  </div>
-)}
+        <div>
+          <label className="text-sm text-black/60 block mb-1">
+            Barcode Number
+          </label>
 
-      {/* ===== TABLE 1 ===== */}
-    
+          <input
+            className="
+              w-full rounded-xl border
+              px-3 py-2 bg-white
+              focus:border-black/30 outline-none transition
+            "
+            placeholder="Enter Barcode"
+            value={barcode}
+            onChange={e => setBarcode(e.target.value)}
+          />
+        </div>
+
+        <button
+          className="
+            w-full p-3 rounded-xl
+            bg-black text-white
+            hover:bg-black/90 transition
+            font-medium
+          "
+          onClick={fetchInfo}
+        >
+          Fetch Nutrition Data
+        </button>
+
+        {/* COUNT DISPLAY */}
+        <div className="bg-gray-100 rounded-xl p-3 flex justify-between">
+          <span className="text-black/60">Detected Count</span>
+          <span className="font-semibold">{count}</span>
+        </div>
+
+        {/* PRODUCT NAME */}
+        {productName && (
+          <div className="bg-gray-100 rounded-xl p-3">
+            <div className="text-black/60 text-sm mb-1">Product</div>
+            <div className="font-medium">{productName}</div>
+          </div>
+        )}
+      </div>
+
+      {/* ===== NUTRITION FACTS ===== */}
       {nutritionTable.length > 0 && (
-        <>
-          <h3 className="mt-6 text-xl">
+        <div className="bg-white rounded-2xl shadow-sm p-5 border">
+
+          <h3 className="text-lg font-semibold mb-3">
             Nutrition Facts (per 100g)
           </h3>
 
-          <table className="w-full mt-2 border">
+          <div className="divide-y">
+            {nutritionTable.map((r, i) => (
+              <div
+                key={i}
+                className="flex justify-between py-2"
+              >
+                <span className="capitalize text-black/80">
+                  {r.nutrient.replace(/_/g, " ")}
+                </span>
 
-            <thead>
-              <tr>
-                <th>Nutrient</th>
-                <th>Value</th>
-                <th>Unit</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {nutritionTable.map((r, i) => (
-                <tr key={i}>
-                  <td>{r.nutrient}</td>
-                  <td>{r.value}</td>
-                  <td>{r.unit}</td>
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </>
+                <span className="font-medium">
+                  {r.value} {r.unit}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* ===== TABLE 2 ===== */}
-
+      {/* ===== COMPONENT TABLE ===== */}
       {componentTable.length > 0 && (
-        <>
-          <h3 className="mt-6 text-xl">
+        <div className="bg-white rounded-2xl shadow-sm p-5 border">
+
+          <h3 className="text-lg font-semibold mb-4">
             Nutri-Score Components
           </h3>
 
-          <table className="w-full mt-2 border">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
 
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Value</th>
-                <th>Points</th>
-                <th>Type</th>
-              </tr>
-            </thead>
+              <thead className="text-black/60 border-b">
+                <tr>
+                  <th className="p-2 text-left">Component</th>
+                  <th className="p-2 text-left">Value</th>
+                  <th className="p-2 text-left">Unit</th>
+                  <th className="p-2 text-left">Points</th>
+                  <th className="p-2 text-left">Type</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {componentTable.map((c, i) => (
-                <tr key={i}>
-                  <td>{c.id}</td>
-                  <td>{c.value}</td>
-                  <td>{c.points}</td>
-                  <td>{c.type}</td>
+              <tbody className="divide-y">
+                {componentTable.map((c, i) => (
+                  <tr key={i} className="hover:bg-gray-50 transition">
+
+                    <td className="p-2 capitalize">
+                      {String(c.component).replace(/_/g, " ")}
+                    </td>
+
+                    <td className="p-2">{c.value}</td>
+
+                    <td className="p-2 text-black/60">
+                      {c.unit}
+                    </td>
+
+                    <td className="p-2 font-semibold">
+                      {c.points}
+                    </td>
+
+                    <td className={`p-2 font-medium ${
+                      c.type === "Positive"
+                        ? "text-green-700"
+                        : "text-red-600"
+                    }`}>
+                      {c.type}
+                    </td>
+
+                  </tr>
+                ))}
+              </tbody>
+
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ===== SUMMARY ===== */}
+      {nutriSummary.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-5 border">
+
+          <h3 className="text-lg font-semibold mb-3">
+            Nutri-Score Summary
+          </h3>
+
+          <table className="w-full text-sm">
+            <tbody className="divide-y">
+
+              {nutriSummary.map((r, i) => (
+                <tr key={i} className="hover:bg-gray-50 transition">
+
+                  <td className="p-2 text-black/70">
+                    {r.metric}
+                  </td>
+
+                  <td className="p-2 font-semibold text-right">
+                    {r.value}
+                  </td>
+
                 </tr>
               ))}
-            </tbody>
 
+            </tbody>
           </table>
-        </>
+
+        </div>
       )}
 
       {/* ===== EXPORT ===== */}
-
       {score !== null && (
         <button
-          className="bg-green-600 text-white px-4 py-2 mt-6"
+          className="
+            w-full p-3 rounded-xl
+            bg-gray-200 hover:bg-gray-300
+            transition text-sm
+          "
           onClick={exportExcel}
         >
-          Download the excel file
+          Download Excel Report
         </button>
       )}
 
     </div>
-  );
+  </div>
+);
+
+
 }

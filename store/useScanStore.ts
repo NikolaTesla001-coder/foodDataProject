@@ -41,7 +41,14 @@ export const useScanStore = create<Store>((set) => ({
     set((state) => {
       const newItem = {
         ...item,
-        time: new Date().toLocaleString(),
+        time: new Date().toLocaleString("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+}),
       };
 
       const updated = [newItem, ...state.history];
