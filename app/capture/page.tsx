@@ -7,6 +7,10 @@ import { useScanStore } from "../../store/useScanStore";
 
 export default function CapturePage() {
     const { addToHistory } = useScanStore();
+    const [showConfirm, setShowConfirm] = useState(false);
+const [detectedTemp, setDetectedTemp] = useState<number | null>(null);
+const [toast, setToast] = useState("");
+
   const { setCount, setProductName, count } = useScanStore();
   const [facing, setFacing] = useState<"user" | "environment">("environment");
 
@@ -40,15 +44,12 @@ export default function CapturePage() {
     setPreview(URL.createObjectURL(file));
   };
 
- const handleCount = async () => {
-  addToHistory({
-  name: name || "Unknown",
-  count: count ,
-  score: 0,         
-  time: new Date().toLocaleString(),
-});
+const handleCount = async () => {
+
   if (!image) {
     setCount(1);
+    setDetectedTemp(1);
+    setShowConfirm(true);
     return;
   }
 
@@ -67,13 +68,36 @@ export default function CapturePage() {
 
     setCount(data.count);
 
+    // Instead of direct save → open confirmation
+    setDetectedTemp(data.count);
+    setShowConfirm(true);
+
   } catch (err) {
     console.log(err);
     setCount(1);
+
+    setDetectedTemp(1);
+    setShowConfirm(true);
   }
 
   setLoading(false);
 };
+
+const saveToHistoryConfirmed = () => {
+  addToHistory({
+    name: name || "Unknown",
+    count: detectedTemp || 1,
+    score: 0,
+    time: new Date().toLocaleString(),
+  });
+
+  setShowConfirm(false);
+
+  setToast("Saved to history ✓");
+
+  setTimeout(() => setToast(""), 2000);
+};
+
 
 
  
@@ -247,6 +271,63 @@ return (
 
       </div>
     </div>
+    {/* CONFIRM MODAL */}
+{showConfirm && (
+  <div className="
+    fixed inset-0 bg-black/40
+    flex items-center justify-center z-50
+  ">
+    <div className="
+      bg-white rounded-2xl p-5
+      w-[90%] max-w-sm shadow-lg
+    ">
+
+      <h3 className="text-lg font-semibold mb-2">
+        Save Result?
+      </h3>
+
+      <p className="text-black/70 mb-4">
+        Detected count = {detectedTemp}
+      </p>
+      {/* TOAST */}
+{toast && (
+  <div className="
+    fixed bottom-4 right-4
+    bg-black text-white
+    px-4 py-2 rounded-xl shadow
+  ">
+    {toast}
+  </div>
+)}
+
+      <div className="grid grid-cols-2 gap-3">
+
+        <button
+          onClick={() => setShowConfirm(false)}
+          className="
+            py-2 rounded-xl border
+            hover:bg-black/5
+          "
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={saveToHistoryConfirmed}
+          className="
+            py-2 rounded-xl
+            bg-black text-white
+            hover:bg-black/90
+          "
+        >
+          Save
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
+
   </div>
 );
 
