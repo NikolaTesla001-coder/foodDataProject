@@ -64,6 +64,7 @@ export const useScanStore = create<Store>((set, get) => ({
       }
 
       return { history: updated };
+      
     }),
 
   clearHistory: () => {

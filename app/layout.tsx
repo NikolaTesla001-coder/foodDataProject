@@ -1,16 +1,21 @@
-import "./globals.css";
-import Navbar from "../components/Navbar";
+"use client";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import Navbar from "../components/Navbar";
+import { usePathname } from "next/navigation";
+import "./globals.css";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+  const pathname = usePathname();
+
   return (
-    <html>
+    <html lang="en">
       <body className="bg-black text-white">
-        <Navbar />
+
+        {pathname !== "/login" && pathname !== "/" && <Navbar />}
+
         {children}
+
       </body>
     </html>
   );

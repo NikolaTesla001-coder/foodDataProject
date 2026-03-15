@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef,useEffect } from "react";
 import { exportCapture } from "../../lib/excel";
 import Webcam from "react-webcam";
 import { useScanStore } from "../../store/useScanStore";
 
 export default function CapturePage() {
-    const { addToHistory } = useScanStore();
     const [showConfirm, setShowConfirm] = useState(false);
 const [detectedTemp, setDetectedTemp] = useState<number | null>(null);
 const [toast, setToast] = useState("");
+const [camAllowed, setCamAllowed] = useState<boolean | null>(null);
 
-  const { setCount, setProductName, count } = useScanStore();
+
+  const { setCount,addToHistory, count } = useScanStore();
   const [facing, setFacing] = useState<"user" | "environment">("environment");
 
   const [mode, setMode] = useState<"upload" | "camera">("upload");
@@ -98,6 +99,34 @@ const saveToHistoryConfirmed = () => {
   setTimeout(() => setToast(""), 2000);
 };
 
+useEffect(() => {
+  return () => {
+    const stream = webcamRef.current?.video?.srcObject as MediaStream;
+    stream?.getTracks().forEach(t => t.stop());
+  };
+}, [mode]);
+
+useEffect(() => {
+  async function checkCam() {
+    try {
+      const perm = await navigator.permissions.query({ name: "camera" as any });
+
+      setCamAllowed(perm.state === "granted");
+
+      perm.onchange = () => {
+        setCamAllowed(perm.state === "granted");
+      };
+
+    } catch {
+      // Browser doesn’t support permission API → assume unknown
+      setCamAllowed(false);
+    }
+  }
+
+  checkCam();
+}, []);
+
+
 
 
  
@@ -153,7 +182,7 @@ return (
             onClick={() => setMode("camera")}
             className={`
               p-3 rounded-xl border transition text-sm
-              ${mode === "camera"
+              ${mode === "camera" 
                 ? "bg-black text-white"
                 : "border-black/10 hover:bg-black/5"
               }
