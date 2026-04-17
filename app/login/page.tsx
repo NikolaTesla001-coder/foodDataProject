@@ -11,22 +11,20 @@ export default function LoginPage() {
   const [username,setUsername] = useState("");
   const [password,setPassword] = useState("");
 
-  const login = () => {
+const login = async () => {
+  const res = await fetch("/api/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
 
-  const found = users.find(
-    u => u.username === username && u.password === password
-  );
+  const data = await res.json();
 
-  if(!found){
+  if (!data.success) {
     alert("Invalid credentials");
     return;
   }
 
-  // clear guest data
   localStorage.clear();
-
-  // mark logged user
-  localStorage.setItem("mode","user");
   localStorage.setItem("user", username);
 
   router.push("/capture");

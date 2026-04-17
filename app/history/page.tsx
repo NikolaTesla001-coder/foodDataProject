@@ -14,18 +14,24 @@ type HistoryItem = {
 export default function HistoryPage() {
 
   // ONLY READ STORE ON CLIENT
-  const storeHistory = useScanStore(s => s.history);
-  const clearHistory = useScanStore(s => s.clearHistory);
+
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [mounted, setMounted] = useState(false);
-   useEffect(() => {
-    useScanStore.getState().loadFromStorage();
-  }, []);
-  useEffect(() => {
-    setHistory(storeHistory);
-    setMounted(true);
-  }, [storeHistory]);
+
+ useEffect(() => {
+  const username = localStorage.getItem("user");
+
+  fetch("/api/history/get", {
+    method: "POST",
+    body: JSON.stringify({ username }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      setHistory(data);
+      setMounted(true);
+    });
+}, []);
 
   // CRITICAL – stop SSR mismatch
   if (!mounted) return null;
@@ -62,7 +68,7 @@ export default function HistoryPage() {
           </button>
 
           <button
-            onClick={clearHistory}
+            onClick={() => alert("DB clear not implemented")}
             className="
               px-3 py-2 rounded-xl
               border border-red-200 text-red-600

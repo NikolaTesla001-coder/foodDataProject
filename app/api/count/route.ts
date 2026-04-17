@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
-
+  
   try {
     const form = await req.formData();
     const file = form.get("file") as File | null;

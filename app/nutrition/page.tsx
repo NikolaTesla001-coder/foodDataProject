@@ -6,6 +6,18 @@ import { useScanStore } from "../../store/useScanStore";
 
 import * as XLSX from "xlsx";
 import { saveToHistory } from "@/lib/history";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+
+const router = useRouter();
+
+useEffect(() => {
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    router.push("/login");
+  }
+}, []);
 
 export default function NutritionPage() {
     const { addToHistory } = useScanStore();
@@ -20,6 +32,7 @@ export default function NutritionPage() {
 
   const [nutritionTable, setNutritionTable] = useState<any[]>([]);
   const [componentTable, setComponentTable] = useState<any[]>([]);
+
 
   // -------- FETCH FROM GOOGLE / OFF --------
   const fetchInfo = async () => {

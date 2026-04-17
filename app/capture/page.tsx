@@ -4,8 +4,28 @@ import { useState, useRef,useEffect } from "react";
 import { exportCapture } from "../../lib/excel";
 import Webcam from "react-webcam";
 import { useScanStore } from "../../store/useScanStore";
+import { useRouter } from "next/navigation";
 
 export default function CapturePage() {
+    useEffect(() => {
+
+  const mode = localStorage.getItem("mode");
+  const user = localStorage.getItem("user");
+
+  if(!mode && !user){
+    window.location.href = "/login";
+  }
+
+}, []);
+const router = useRouter();
+
+useEffect(() => {
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    router.push("/login");
+  }
+}, []);
     const [showConfirm, setShowConfirm] = useState(false);
 const [detectedTemp, setDetectedTemp] = useState<number | null>(null);
 const [toast, setToast] = useState("");
@@ -84,16 +104,21 @@ const handleCount = async () => {
   setLoading(false);
 };
 
-const saveToHistoryConfirmed = () => {
-  addToHistory({
-    name: name || "Unknown",
-    count: detectedTemp || 1,
-    score: 0,
-    time: new Date().toLocaleString(),
+const saveToHistoryConfirmed = async () => {
+  const username = localStorage.getItem("user");
+
+  await fetch("/api/history/add", {
+    method: "POST",
+    body: JSON.stringify({
+      username,
+      name: name || "Unknown",
+      count: detectedTemp || 1,
+      score: 0,
+      time: new Date().toLocaleString(),
+    }),
   });
 
   setShowConfirm(false);
-
   setToast("Saved to history ✓");
 
   setTimeout(() => setToast(""), 2000);
