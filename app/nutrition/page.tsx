@@ -7,13 +7,13 @@ import { useScanStore } from "../../store/useScanStore";
 import * as XLSX from "xlsx";
 import { saveToHistory } from "@/lib/history";
 import { useEffect } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
-const router = useRouter();
+
 
 useEffect(() => {
   const user = localStorage.getItem("user");
-
+  const router = useRouter();
   if (!user) {
     router.push("/login");
   }
