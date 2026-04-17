@@ -11,21 +11,22 @@ import { useRouter } from "next/navigation";
 
 
 
-useEffect(() => {
-  const user = localStorage.getItem("user");
-  const router = useRouter();
-  if (!user) {
-    router.push("/login");
-  }
-}, []);
+
 
 export default function NutritionPage() {
-    const { addToHistory } = useScanStore();
-  
+  const { addToHistory } = useScanStore();
+  const router = useRouter();
   const { count } = useScanStore();
 
   const [barcode, setBarcode] = useState("");
   const [productName, setProductName] = useState("");
+
+  useEffect(() => {
+  const user = localStorage.getItem("user");
+  if (!user) {
+    router.push("/login");
+  }
+}, []);
 
   const [score, setScore] = useState<number | null>(null);
   const [nutriSummary, setNutriSummary] = useState<any[]>([]);
